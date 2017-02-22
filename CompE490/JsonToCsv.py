@@ -9,12 +9,14 @@ X = json.loads(employee_data) # This loads the json file into a variable X
 CSVfile = open('./EmployData.csv', 'w') # This opens a new CSV file with write permissions
 
 
-
-
-emp_data = X['employee_details']
-
-
+for key in X.keys():
+    firstProp = key #Gets the Key value inside employee data
+    
+    
+    
+emp_data = X[key] #Prints the data associated with the key
 csvwriter = csv.writer(CSVfile)
+print(csvwriter)
 
 count = 0
 for emp in emp_data:
