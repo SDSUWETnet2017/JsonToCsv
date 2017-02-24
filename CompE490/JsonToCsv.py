@@ -1,41 +1,42 @@
 import json
 import csv
-import ijson
-from traitlets.config.loader import JSONFileConfigLoader
+import ijson.backends.yajl2 as ijson
 import os
 from os import path
+import time
+import gc
+from ctypes import util, cdll
 
 cwd = os.getcwd()
-print(cwd)
 
-#path = '..\\test_data.json'
-path = '..\\md_traffic.json'
-
+path = '../md_traffic.json'
+#path = '../generated.json'
 
 
-#edit
 
+start_time = time.time() #Testing time
 with open(path,'r') as jsonfile:
+    gc.disable()
     objects = ijson.items(jsonfile, 'meta.view.columns.item')
-    #objects = ijson.items(jsonfile, 'node1.lists.item')
-    print(objects)
-    columns = list(objects)
-    
-print(columns)
+    columns = list(objects) 
+    gc.enable()
+print('md_traffic = ', columns)
+end_time = time.time() #Testing time
+print('Time Taken in Minutes', (end_time-start_time)/60)
 
-CSVfile = open('/EmployData.csv', 'w')
+
+CSVfile = open('../Traffic.csv', 'w')
 csvwriter = csv.writer(CSVfile)
-print(csvwriter)
 
 count = 0
 for emp in columns:
     if count == 0:
+        #emp.encode('utf-8', 'replace')
         header = emp.keys()
         csvwriter.writerow(header)
         count += 1
     csvwriter.writerow(emp.values())
-
-
+CSVfile.close()
 
 
 """for key in X.keys():
@@ -57,4 +58,13 @@ for emp in emp_data:
         count += 1
     csvwriter.writerow(emp.values())
 
-CSVfile.close()"""
+CSVfile.close()
+
+
+
+##Test Pruposes##
+employee_data = '{"employee_details":[{"employee_name": "James", "email": "james@gmail.com", "job_profile": "Sr. Developer"},{"employee_name": "Smith", "email": "Smith@gmail.com", "job_profile": "Project Lead"}]}'
+employee_parsed = json.loads(employee_data)
+emp_data = employee_parsed['employee_details']
+print('Emp_data = ', emp_data)
+##Test Pruposes##"""
