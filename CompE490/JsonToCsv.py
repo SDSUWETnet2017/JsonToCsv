@@ -1,70 +1,70 @@
 import json
 import csv
-import ijson.backends.yajl2 as ijson
 import os
 from os import path
 import time
 import gc
 from ctypes import util, cdll
+import ast
+import sys
 
 cwd = os.getcwd()
-
-path = '../md_traffic.json'
-#path = '../generated.json'
-
-
-
-start_time = time.time() #Testing time
-with open(path,'r') as jsonfile:
-    gc.disable()
-    objects = ijson.items(jsonfile, 'meta.view.columns.item')
-    columns = list(objects) 
-    gc.enable()
-print('md_traffic = ', columns)
-end_time = time.time() #Testing time
-print('Time Taken in Minutes', (end_time-start_time)/60)
+RowName = [] 
+NodeData = []
+Columnname = [] 
+THU = [] # THU Stands for Temperture, Humidity and UV
 
 
-CSVfile = open('../Traffic.csv', 'w')
-csvwriter = csv.writer(CSVfile)
+def NodeDataJsonToCsv (path):
+	with open(path,'r') as jsonfile:
+	    Nodes = json.load(jsonfile)
+	    for key in Nodes.keys():
+	        RowName.append(key) #getting the name of the rows (Node1,Node2,Node3...etc)
+	        NodeData.append(Nodes[key]) #Gets a list of the Data for Node1, Node2 ..etc (2017 :[x,y,z], a , d)
 
-count = 0
-for emp in columns:
-    if count == 0:
-        #emp.encode('utf-8', 'replace')
-        header = emp.keys()
-        csvwriter.writerow(header)
-        count += 1
-    csvwriter.writerow(emp.values())
-CSVfile.close()
+	for key in NodeData[0][0].keys(): #Because each key is the same i am getting the key values for the Date Dictionary
+	    Columnname.append(key)
+	 
 
+	#Goal is to get a list of list     
+	for nodenum in range(0,len(NodeData)):
+	    THU.append([])
+	    for key in Columnname:
+	    	# Essentially this is getting a list of all nodes (size 10) within each list will be a list at a certain times
+	    	# Temperture, Humidity, UV creditentials. It can be calle using THU[Nodenum][DateColumn]
+	        THU[nodenum].append(NodeData[nodenum][0][key]) 
 
-"""for key in X.keys():
-    firstProp = key #Gets the Key value inside employee data
-    
-for item in ijson.items(f, 'meta.view.columns.item'):
-        print(item)
-        break
-    
-emp_data = X[key] #Prints the data associated with the key
-csvwriter = csv.writer(CSVfile)
-print(csvwriter)
-
-count = 0
-for emp in emp_data:
-    if count == 0:
-        header = emp.keys()
-        csvwriter.writerow(header)
-        count += 1
-    csvwriter.writerow(emp.values())
-
-CSVfile.close()
-
+	#Now that we have, the Node names, the Date names, and the info corresponding tot he date and the column we need to format it
+	for nodenum in range(0,len(THU)):
+		tmpout = [] # Creating a tmp list for a row
+		if (RowName[nodenum] != 'node 1' and RowName[nodenum] != 'node 6'):
+			for date in range(0,len(Columnname)):
+				outstring = ('Termpeture: '+  str(THU[nodenum][date][0]) + '\nHumidity: '+  str(THU[nodenum][date][1]) + '\nUV Index: '+  str(THU[nodenum][date][2]))
+				tmpout.append(outstring) # Concatenating each Dates info into one lsit
+			THU[nodenum] = tmpout #Setting the final row list into a List (List of List)
+		else:
+			# Doing the same thing for the super nodes
+			for date in range(0,len(Columnname)):
+				outstring = ('Termpeture: '+  str(THU[nodenum][date][0]) + '\nHumidity: '+  str(THU[nodenum][date][1]) + '\nUV Index: '+  str(THU[nodenum][date][2])+	'\nPressure: '+  str(THU[nodenum][date][3])+	'\nWindspeed: '+  str(THU[nodenum][date][4])+	'\nWindDirection: '+  str(THU[nodenum][date][5])+	'\nPicture: '+  str(THU[nodenum][date][6]))
+				tmpout.append(outstring)
+			THU[nodenum] = tmpout
 
 
-##Test Pruposes##
-employee_data = '{"employee_details":[{"employee_name": "James", "email": "james@gmail.com", "job_profile": "Sr. Developer"},{"employee_name": "Smith", "email": "Smith@gmail.com", "job_profile": "Project Lead"}]}'
-employee_parsed = json.loads(employee_data)
-emp_data = employee_parsed['employee_details']
-print('Emp_data = ', emp_data)
-##Test Pruposes##"""
+	with open('../NodeData.csv', 'w') as CSVfile: # Putting it into the CSV
+	    NodeDataCSV = csv.writer(CSVfile,lineterminator = '\n')
+	    NodeDataCSV.writerow([' '] + Columnname)
+	    for nodenum in range(0,len(RowName)):
+	        NodeDataCSV.writerow([RowName[nodenum]] + THU[nodenum])
+
+
+if sys.argv[1] == '-h' or sys.argv[1] == '-H':
+	print('Format should be python .JsonToCsv ''.JsonFile location'' \n example: python ./JsonToCsvnew.py ../test_data.json ')
+
+else:
+	NodeDataJsonToCsv(sys.argv[1])
+
+
+#len(NodeData)) The length is 3 0-2
+# NodeData[1][0] Gets the Dictionary Vlaue of first node
+# NodeData[1][1] Gets the Longitude FLOAT of first node
+# NodeData[1][2] Gets the Latitude FLOAT 
