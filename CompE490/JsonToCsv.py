@@ -50,7 +50,7 @@ def NodeDataJsonToCsv (path):
 			THU[nodenum] = tmpout
 
 
-	with open('../NodeData.csv', 'w') as CSVfile: # Putting it into the CSV
+	with open('./NodeData.csv', 'w') as CSVfile: # Putting it into the CSV
 	    NodeDataCSV = csv.writer(CSVfile,lineterminator = '\n')
 	    NodeDataCSV.writerow([' '] + Columnname)
 	    for nodenum in range(0,len(RowName)):
